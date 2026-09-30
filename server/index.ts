@@ -1,4 +1,5 @@
 import express from 'express'
+import helmet from 'helmet'
 import { db, tx } from './db'
 import { detectSignals } from '../src/engine/signals'
 import { rankActions } from '../src/engine/rules'
@@ -9,6 +10,7 @@ const TRANSPORTS: Transport[] = ['walk', 'car', 'train', 'bus']
 
 const PORT = Number(process.env.PORT ?? 3001)
 const app = express()
+app.use(helmet())
 app.use(express.json())
 
 const getPersona = (id: string): Persona | undefined => {
