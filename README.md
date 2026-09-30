@@ -1,38 +1,100 @@
-# KBC Right Moment
+<p align="center">
+  <img src="public/logo.png" alt="KBC" width="72" />
+</p>
 
-Proof of concept for the **KBC challenge** at the Tectonic hackathon: *how can a bank understand what a customer needs and respond at exactly the right moment, for 2.3 million customers?*
+<h1 align="center">KBC Right Moment</h1>
 
-Our answer: **contextual quick actions**. The login screen and the dashboard of the KBC app show a few buttons that adapt to the customer's situation, behaviour and intent. Pay parking when you've just parked. A train ticket when you're at the station. A savings account for your newborn. And a calm "you're on track" overview when you open the app at 3 AM.
+<p align="center">
+  <b>The right button, at the right moment, for every one of KBC's 2.3 million customers.</b><br/>
+  <sub>Tectonic hackathon · KBC challenge</sub>
+</p>
 
-## The idea
+---
+
+> **The challenge:** *How can a bank understand what a customer needs and respond at exactly the right moment, at the scale of 2.3 million customers?*
+>
+> **Our answer:** don't build another chatbot or another inbox full of offers. Change **the buttons the customer already taps**. The KBC app's login screen and dashboard get a small set of quick actions that adapt to where the customer is, what just happened in their account and what's coming up in their life, and each one says why it's there.
+
+## 30-second pitch
+
+A bank already knows a lot about its customers: a salary just came in, a baby was added to the family, €45,000 of savings hasn't moved in three years. The phone also knows the customer just parked or is standing on a train platform. Today almost none of that reaches the home screen, and every customer sees the same fixed buttons.
+
+**Right Moment** turns those signals into a short list of ranked, explained actions and puts them on the right surface:
+
+| When… | …the app shows |
+| --- | --- |
+| 🅿️ You just parked in the city | **Pay parking**, right on the login screen |
+| 🚆 You're at the station at 8 AM | **Train ticket**, before you even log in |
+| 🍼 A baby joined your family | **Start a savings account for your child** |
+| 🎂 You turn 18 next week | **Open your own account** |
+| 🌙 You open the app at 3 AM | **"You're on track: see overview"**. Reassurance, not a sales pitch |
+
+Every contextual button has an **ⓘ "Why am I seeing this?"** that names the exact signals behind it.
+
+## Why this wins
+
+| | |
+| --- | --- |
+| 🎯 **Useful from the first tap** | It meets needs the customer has *right now* (parking, tickets, card at the till) and earns the attention that the bigger moments (child, inheritance, retirement) need. |
+| 🔍 **Explainable by design** | Readable rules, not a black box. Every recommendation carries its reason, which matters to customers, compliance and regulators (GDPR, EU AI Act). |
+| 🛡️ **Safe surfaces** | Only low-risk actions (show card, pay parking, train ticket, balance, block card) may appear *before* authentication. Financial advice stays behind login. |
+| 🤍 **Empathetic** | Late-night sessions often mean worry. The engine notices and leads with a calm overview instead of an investment pitch. |
+| ⚡ **Built for 2.3M customers** | Scoring is stateless: a few dozen comparisons per request, no model inference. It runs per event (on-device, at the edge or in a small service), with no nightly batch over the whole customer base. |
+| 🔁 **Learns** | Every impression, click and "why?" tap is logged. Clicked actions get a personal boost, and the data supports A/B testing and uplift measurement. |
+| 🧩 **Extends with two edits** | A new "moment" is one signal and one rule. The same engine can serve the app, the website and an advisor view in the branch. |
+
+## How it works
 
 ```
-signals  →  situation  →  ranked actions  →  button on the right surface
+ ┌──────────────┐    ┌──────────────┐    ┌───────────────┐    ┌────────────────────────┐
+ │   SIGNALS    │ →  │    RULES     │ →  │    RANKING    │ →  │        SURFACES        │
+ │ transactions │    │ signal → act │    │ weight        │    │ 🔓 Login: low-risk only │
+ │ profile      │    │ + reason     │    │ × confidence  │    │ ✨ Dashboard: "For you, │
+ │ behaviour    │    │              │    │ + time boost  │    │    now" widget          │
+ │ device       │    │              │    │ + your clicks │    │                        │
+ │ location     │    │              │    │               │    │  ⓘ why? on every card   │
+ └──────────────┘    └──────────────┘    └───────────────┘    └────────────────────────┘
+        ▲                                                                  │
+        └──────────────────── interactions logged (feedback loop) ─────────┘
 ```
 
-1. **Signals** come from transactions (salary in, unusual inflow, idle savings, subscriptions, daycare payments), the profile (milestones like 18/21/65, a new child in the family), behaviour (time of day, late-night use), the device (new phone) and location (parked, on the train, abroad, in a shop).
-2. **Rules** turn signals into scored actions. Each action says *why* it is shown.
-3. **Surfaces**: only low-risk actions (show card, pay parking, train ticket, block card, balance) appear on the **login screen** before authentication. Richer suggestions go into the **"✨ For you, now"** widget on the dashboard.
-4. **Feedback loop**: every interaction is stored. Actions a customer clicks get a boost for that customer (+5 per click, max +15).
+1. **Signals** (`src/engine/signals.ts`) are derived from:
+   - **Transactions:** salary just in, unusual inflow, idle savings, many subscriptions, daycare payments
+   - **Profile:** turning 18/21/65 soon, pre-retirement age, a new child in the family
+   - **Behaviour:** late-night use
+   - **Device:** login from a new phone
+   - **Location:** car parked, on the train or at a station, abroad, in a shop
+2. **Rules** (`src/engine/rules.ts`) map signals to actions. Each rule has a base weight, the surfaces it may appear on and a plain-language reason template.
+3. **Ranking:** `score = weight × (1 + 0.15 × (extra matching signals)) + context boost + feedback boost`. More matching signals means more confidence. Each past click adds +5 for that customer, capped at +15, so the engine personalises without running away with itself.
+4. **Surfaces:** the top 3 contextual actions go first on the login screen, followed by the familiar standard tiles (QR pay, Kate Wallet, Receive money, Kate Coins). The top 3 dashboard actions fill the **"✨ For you, now"** widget. No signals means no noise: the customer just sees the standard actions.
 
-**Why it scales:** scoring is stateless and cheap. It runs per event (on-device, at the edge or in a small service), not as a nightly batch over millions of customers, and the same engine can serve the app, the website and the branch.
+### Worked example: Marc, 58, at 03:00
 
-**Why customers can trust it:** every button has an ⓘ that explains in plain language which signals triggered it. The rules are explainable, and late-night visits lead with reassurance, not sales.
+Marc received a €45,000 inheritance six days ago, and his €12,000 savings haven't moved in three years. He opens the app at 3 AM.
 
-## Demo
-
-The page shows a phone mockup (left) and a **control room** (right) where you pick a customer and change the live context (time, location, movement). The buttons re-rank instantly, and every change is stored in the database.
-
-| Customer | Situation | What they see |
+| Action | Signals matched | Score |
 | --- | --- | --- |
-| 🎓 Lotte | Turns 18 next week, in a shop, new phone | *Show card* · *Turning 18? Open your own account* |
-| 🚗 Jonas | Commuter, salary just in, 5 subscriptions | *Pay parking* when parked, *Train ticket* at the station |
-| 🍼 Sarah | Baby born 2 months ago, daycare payments | *Start a savings account for your child* · *Check your family insurance* |
-| 🧓 Marc | 58, €45k inheritance, savings idle for 3 years | At 03:00: *You're on track: see overview*. During the day: *Put idle savings to work* · *Talk to an advisor* |
+| 🌙 You're on track: see overview | `lateNight` | **95** |
+| 📈 Put idle savings to work | `idleCapital`, `suddenInflow` | 80 × 1.15 = **92** |
+| 🤝 Talk to an advisor | `suddenInflow`, `preRetirement` | 72 × 1.15 = **83** |
+
+Reassurance comes first. Move the clock to 14:00 in the control room and the calm overview disappears, so the investment and advisor suggestions lead.
+
+## Live demo
+
+The demo page has a **phone mockup** on the left and a **control room** on the right. Pick a customer, change the time, place and way of travelling, and watch the buttons re-rank instantly. The control room shows the detected signals, the scores and live database stats (events, recommendations, interactions, top actions).
+
+**Suggested 2-minute walkthrough for the jury:**
+
+1. **🚗 Jonas** (commuter, salary just in, 5 subscriptions). He starts at 08:00, parked in the city, so **Pay parking** tops the login screen. Switch location to *station* and **Train ticket** takes its place. The dashboard suggests *Review your subscriptions* and *Auto-save part of your salary*.
+2. **🎓 Lotte** (turns 18 in 6 days, in a shop, new phone). Login shows **Show card** and **Block card**, and the dashboard shows **Turning 18? Open your own account** and **Confirm your new device**.
+3. **🍼 Sarah** (baby born 2 months ago, daycare payments). The login screen stays standard because nothing urgent is happening. The dashboard shows **Start a savings account for your child** and **Check your family insurance**.
+4. **🧓 Marc** at 03:00, then at 14:00 (see the worked example above).
+5. Tap **ⓘ** on any button to see the reasoning. Click a suggestion a few times and watch it climb in that customer's ranking.
 
 ## Getting started
 
-Requires **Node.js 22.13+**, which ships SQLite built in (`node:sqlite`).
+Requires **Node.js 22.13+**, which ships SQLite built in (`node:sqlite`). No other database or service is needed.
 
 ```bash
 npm install
@@ -43,8 +105,6 @@ npm run dev
 - API: http://localhost:3001
 
 The SQLite database `kbc.db` is created automatically and seeded with the 4 demo customers. To reset it, stop the servers, delete `kbc.db*` and run `npm run dev` again. Node prints an "SQLite is experimental" warning, which is harmless.
-
-Other scripts:
 
 ```bash
 npm run server   # API only
@@ -68,15 +128,17 @@ curl -X POST http://localhost:3001/api/customers/jonas/context \
   -d '{"hour":8,"location":"station","transport":"train"}'
 ```
 
-## Database
+## Data model
 
 | Table | Contents |
 | --- | --- |
 | `customers` | Persona JSON (seeded from `src/data/personas.ts`) |
 | `context_events` | Every context update: customer, hour, location, transport |
 | `signals` | Signals detected per event |
-| `recommendations` | Actions shown per event, surface, rank and score |
+| `recommendations` | Actions shown per event, with surface, rank and score |
 | `interactions` | Button clicks and "why?" taps |
+
+Together these give a full audit trail of what was shown, why, and what the customer did with it. That trail is what makes measurement and compliance possible.
 
 ## Project structure
 
@@ -96,16 +158,21 @@ src/
   App.tsx
 ```
 
-**Adding a new moment:** add a signal in `src/engine/signals.ts`, then add a rule in `src/engine/rules.ts` with the signals it needs, a weight, the surfaces it may appear on and a reason.
+**Adding a new moment** takes two edits: add a signal in `src/engine/signals.ts`, then add a rule in `src/engine/rules.ts` with the signals it needs, a weight, the surfaces it may appear on and a reason.
 
-## Roadmap
+## From prototype to production
 
-- ML-based customer profiles from spending clusters, alongside the explainable rules
-- Real consent and preference centre: customers choose which signals may be used
-- Subscriptions controller, idle-capital coach, Tectonic coins (rewards for good financial habits)
-- Other channels: website, notifications, advisor view in the branch
-- A/B testing and uplift measurement on the interaction data
+| Step | What |
+| --- | --- |
+| **1. Consent** | A preference centre where customers choose which signals (location, transactions, …) may be used, and can switch suggestions off |
+| **2. Real signals** | Hook the engine onto KBC's transaction stream and the app's location and device events |
+| **3. Smarter ranking** | ML-based profiles from spending clusters, alongside the explainable rules rather than replacing them |
+| **4. More moments** | Subscriptions controller, idle-capital coach, Kate Coins rewards for good financial habits |
+| **5. More channels** | Website, push notifications, an advisor view in the branch, all using the same engine |
+| **6. Measure** | A/B tests and uplift measurement on the interaction data that's already being logged |
 
 ## Stack
 
-React 18 · TypeScript · Vite · Express · SQLite (`node:sqlite`)
+React 18 · TypeScript · Vite · Express 5 · SQLite (`node:sqlite`)
+
+<p align="center"><sub>Built at the Tectonic hackathon for the KBC challenge.</sub></p>
