@@ -17,14 +17,15 @@
 
 ## 30-second pitch
 
-A bank already knows a lot about its customers: a salary just came in, a baby was added to the family, €45,000 of savings hasn't moved in three years. The phone also knows the customer just parked or is standing on a train platform. Today almost none of that reaches the home screen, and every customer sees the same fixed buttons.
+A bank already knows a lot about its customers: a salary just came in, a baby was added to the family, €45,000 of savings hasn't moved in three years. The phone also knows the customer just parked in a paid zone, is standing on an NMBS platform or is waiting for a De Lijn bus. Today almost none of that reaches the home screen, and every customer sees the same fixed buttons.
 
 **Right Moment** turns those signals into a short list of ranked, explained actions and puts them on the right surface:
 
 | When… | …the app shows |
 | --- | --- |
-| 🅿️ You just parked in the city | **Pay parking**, right on the login screen |
-| 🚆 You're at the station at 8 AM | **Train ticket**, before you even log in |
+| 🅿️ You just parked in the city | **Park with 4411**, right on the login screen |
+| 🚆 You're at an NMBS station at 8 AM | **NMBS ticket**, before you even log in |
+| 🚌 You're at a De Lijn stop | **De Lijn ticket**, one tap away |
 | 🍼 A baby joined your family | **Start a savings account for your child** |
 | 🎂 You turn 18 next week | **Open your own account** |
 | 🌙 You open the app at 3 AM | **"You're on track: see overview"**. Reassurance, not a sales pitch |
@@ -35,9 +36,9 @@ Every contextual button has an **ⓘ "Why am I seeing this?"** that names the ex
 
 | | |
 | --- | --- |
-| 🎯 **Useful from the first tap** | It meets needs the customer has *right now* (parking, tickets, card at the till) and earns the attention that the bigger moments (child, inheritance, retirement) need. |
+| 🎯 **Useful from the first tap** | It meets needs the customer has *right now* (4411 parking, NMBS and De Lijn tickets, card at the till) and earns the attention that the bigger moments (child, inheritance, retirement) need. |
 | 🔍 **Explainable by design** | Readable rules, not a black box. Every recommendation carries its reason, which matters to customers, compliance and regulators (GDPR, EU AI Act). |
-| 🛡️ **Safe surfaces** | Only low-risk actions (show card, pay parking, train ticket, balance, block card) may appear *before* authentication. Financial advice stays behind login. |
+| 🛡️ **Safe surfaces** | Only low-risk actions (show card, 4411 parking, NMBS and De Lijn tickets, balance, block card) may appear *before* authentication. Financial advice stays behind login. |
 | 🤍 **Empathetic** | Late-night sessions often mean worry. The engine notices and leads with a calm overview instead of an investment pitch. |
 | ⚡ **Built for 2.3M customers** | Scoring is stateless: a few dozen comparisons per request, no model inference. It runs per event (on-device, at the edge or in a small service), with no nightly batch over the whole customer base. |
 | 🔁 **Learns** | Every impression, click and "why?" tap is logged. Clicked actions get a personal boost, and the data supports A/B testing and uplift measurement. |
@@ -63,7 +64,7 @@ Every contextual button has an **ⓘ "Why am I seeing this?"** that names the ex
    - **Profile:** turning 18/21/65 soon, pre-retirement age, a new child in the family
    - **Behaviour:** late-night use
    - **Device:** login from a new phone
-   - **Location:** car parked, on the train or at a station, abroad, in a shop
+   - **Location:** car parked in a paid zone, on an NMBS train or at an NMBS station, on a De Lijn bus or at a De Lijn stop, abroad, in a shop
 2. **Rules** (`src/engine/rules.ts`) map signals to actions. Each rule has a base weight, the surfaces it may appear on and a plain-language reason template.
 3. **Ranking:** `score = weight × (1 + 0.15 × (extra matching signals)) + context boost + feedback boost`. More matching signals means more confidence. Each past click adds +5 for that customer, capped at +15, so the engine personalises without running away with itself.
 4. **Surfaces:** the top 3 contextual actions go first on the login screen, followed by the familiar standard tiles (QR pay, Kate Wallet, Receive money, Kate Coins). The top 3 dashboard actions fill the **"✨ For you, now"** widget. No signals means no noise: the customer just sees the standard actions.
@@ -86,7 +87,7 @@ The demo page has a **phone mockup** on the left and a **control room** on the r
 
 **Suggested 2-minute walkthrough for the jury:**
 
-1. **🚗 Jonas** (commuter, salary just in, 5 subscriptions). He starts at 08:00, parked in the city, so **Pay parking** tops the login screen. Switch location to *station* and **Train ticket** takes its place. The dashboard suggests *Review your subscriptions* and *Auto-save part of your salary*.
+1. **🚗 Jonas** (commuter, salary just in, 5 subscriptions). He starts at 08:00, parked in the city, so **Park with 4411** tops the login screen. Switch location to *NMBS station* and **NMBS ticket** takes its place; pick *De Lijn stop* and it becomes **De Lijn ticket**. The dashboard suggests *Review your subscriptions* and *Auto-save part of your salary*.
 2. **🎓 Lotte** (turns 18 in 6 days, in a shop, new phone). Login shows **Show card** and **Block card**, and the dashboard shows **Turning 18? Open your own account** and **Confirm your new device**.
 3. **🍼 Sarah** (baby born 2 months ago, daycare payments). The login screen stays standard because nothing urgent is happening. The dashboard shows **Start a savings account for your child** and **Check your family insurance**.
 4. **🧓 Marc** at 03:00, then at 14:00 (see the worked example above).
@@ -104,7 +105,7 @@ npm run dev
 - Web app: http://localhost:5173 (Vite forwards `/api` to the backend)
 - API: http://localhost:3001
 
-The SQLite database `kbc.db` is created automatically and seeded with the 4 demo customers. To reset it, stop the servers, delete `kbc.db*` and run `npm run dev` again. Node prints an "SQLite is experimental" warning, which is harmless.
+The SQLite database `kbc.db` is created automatically, and the 4 demo customers are synced from `src/data/personas.ts` on every start. To reset it, stop the servers, delete `kbc.db*` and run `npm run dev` again. Node prints an "SQLite is experimental" warning, which is harmless.
 
 ```bash
 npm run server   # API only
@@ -120,7 +121,7 @@ npm run build    # typecheck + production build of the frontend
 | `POST` | `/api/interactions` | Body `{ customerId, actionId, kind: "click" \| "why" }` |
 | `GET` | `/api/stats` | Totals plus shown/clicks per action |
 
-`location` is one of `home | work | city | shop | station | abroad`. `transport` is one of `walk | car | train | null`.
+`location` is one of `home | work | city | shop | station | busstop | abroad` (`station` = NMBS station, `busstop` = De Lijn stop). `transport` is one of `walk | car | train | bus | null` (`train` = NMBS, `bus` = De Lijn).
 
 ```bash
 curl -X POST http://localhost:3001/api/customers/jonas/context \
@@ -132,7 +133,7 @@ curl -X POST http://localhost:3001/api/customers/jonas/context \
 
 | Table | Contents |
 | --- | --- |
-| `customers` | Persona JSON (seeded from `src/data/personas.ts`) |
+| `customers` | Persona JSON (synced from `src/data/personas.ts`) |
 | `context_events` | Every context update: customer, hour, location, transport |
 | `signals` | Signals detected per event |
 | `recommendations` | Actions shown per event, with surface, rank and score |

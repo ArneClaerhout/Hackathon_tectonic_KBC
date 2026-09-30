@@ -39,12 +39,10 @@ db.exec(`
   );
 `)
 
-const { n } = db.prepare('SELECT COUNT(*) AS n FROM customers').get() as { n: number }
-if (n === 0) {
-  const insert = db.prepare('INSERT INTO customers (id, data) VALUES (?, ?)')
-  for (const p of PERSONAS) insert.run(p.id, JSON.stringify(p))
-  console.log(`Seeded ${PERSONAS.length} customers`)
-}
+// src/data/personas.ts is the source of truth for the demo customers: sync them on every start.
+const upsert = db.prepare('INSERT INTO customers (id, data) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET data = excluded.data')
+for (const p of PERSONAS) upsert.run(p.id, JSON.stringify(p))
+console.log(`Synced ${PERSONAS.length} customers`)
 
 // Runs fn inside a transaction (node:sqlite has no transaction helper).
 export function tx<T>(fn: () => T): T {

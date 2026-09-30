@@ -12,11 +12,13 @@ interface Rule {
 }
 
 const why = (m: Signal[]) => m.map(x => x.label).join(' · ')
+const rushHour = (c: Context) => (c.hour >= 7 && c.hour <= 9 ? 10 : 0)
 
 // Only low-risk actions are allowed on the login screen (before full authentication).
 const RULES: Rule[] = [
-  { id: 'payParking', label: 'Pay parking', icon: '🅿️', surfaces: ['login', 'dashboard'], needs: ['parkedCar'], weight: 90, reason: m => `${why(m)}. Start a parking session in one tap.` },
-  { id: 'trainTicket', label: 'Train ticket', icon: '🚆', surfaces: ['login', 'dashboard'], needs: ['onTrain'], weight: 85, reason: m => `${why(m)}. Buy your ticket without leaving the app.`, boost: c => (c.hour >= 7 && c.hour <= 9 ? 10 : 0) },
+  { id: 'park4411', label: 'Park with 4411', icon: '🅿️', surfaces: ['login', 'dashboard'], needs: ['parkedCar'], weight: 90, reason: m => `${why(m)}. Start a 4411 parking session in one tap.` },
+  { id: 'nmbsTicket', label: 'NMBS ticket', icon: '🚆', surfaces: ['login', 'dashboard'], needs: ['onNmbs'], weight: 85, reason: m => `${why(m)}. Buy your NMBS train ticket without leaving the app.`, boost: rushHour },
+  { id: 'deLijnTicket', label: 'De Lijn ticket', icon: '🚌', surfaces: ['login', 'dashboard'], needs: ['onDeLijn'], weight: 85, reason: m => `${why(m)}. Buy your De Lijn ticket in one tap.`, boost: rushHour },
   { id: 'travelInsurance', label: 'Travel cover', icon: '🧳', surfaces: ['login', 'dashboard'], needs: ['abroad'], weight: 75, reason: m => `${why(m)}. Check your travel insurance and emergency number.` },
   { id: 'showCard', label: 'Show card', icon: '💳', surfaces: ['login'], needs: ['atShop', 'abroad'], weight: 70, reason: m => `${why(m)}. Your card, ready to pay.` },
   { id: 'balance', label: 'Balance', icon: '👁️', surfaces: ['login'], needs: ['salaryJustIn', 'lateNight', 'suddenInflow'], weight: 50, reason: m => `${why(m)}. Peek at your balance without logging in.` },

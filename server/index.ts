@@ -4,8 +4,8 @@ import { detectSignals } from '../src/engine/signals'
 import { rankActions } from '../src/engine/rules'
 import type { Context, Location, Persona, Transport } from '../src/engine/types'
 
-const LOCATIONS: Location[] = ['home', 'work', 'station', 'abroad', 'shop', 'city']
-const TRANSPORTS: Transport[] = ['walk', 'car', 'train']
+const LOCATIONS: Location[] = ['home', 'work', 'station', 'busstop', 'abroad', 'shop', 'city']
+const TRANSPORTS: Transport[] = ['walk', 'car', 'train', 'bus']
 
 const PORT = Number(process.env.PORT ?? 3001)
 const app = express()

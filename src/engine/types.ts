@@ -1,5 +1,7 @@
-export type Location = 'home' | 'work' | 'station' | 'abroad' | 'shop' | 'city'
-export type Transport = 'walk' | 'car' | 'train' | null
+// station = NMBS train station, busstop = De Lijn stop
+export type Location = 'home' | 'work' | 'station' | 'busstop' | 'abroad' | 'shop' | 'city'
+// train = NMBS, bus = De Lijn
+export type Transport = 'walk' | 'car' | 'train' | 'bus' | null
 
 export interface Transaction {
   daysAgo: number

@@ -32,10 +32,12 @@ export function detectSignals(p: Persona, ctx: Context): Signal[] {
   if (ctx.hour >= 1 && ctx.hour < 5) s.push({ id: 'lateNight', label: `Opening the app at ${ctx.hour}:00 at night`, source: 'behaviour' })
 
   if (p.hasCar && ctx.transport === null && ['city', 'shop', 'work'].includes(ctx.location))
-    s.push({ id: 'parkedCar', label: `Car just parked (${ctx.location})`, source: 'location' })
+    s.push({ id: 'parkedCar', label: `Car just parked in a paid zone (${ctx.location})`, source: 'location' })
   if (ctx.transport === 'car') s.push({ id: 'driving', label: 'Currently driving', source: 'location' })
   if (ctx.transport === 'train' || ctx.location === 'station')
-    s.push({ id: 'onTrain', label: ctx.transport === 'train' ? 'Travelling by train' : 'At a train station', source: 'location' })
+    s.push({ id: 'onNmbs', label: ctx.transport === 'train' ? 'Travelling on an NMBS train' : 'At an NMBS station', source: 'location' })
+  if (ctx.transport === 'bus' || ctx.location === 'busstop')
+    s.push({ id: 'onDeLijn', label: ctx.transport === 'bus' ? 'Travelling on a De Lijn bus' : 'At a De Lijn stop', source: 'location' })
   if (ctx.location === 'abroad') s.push({ id: 'abroad', label: 'Phone is abroad', source: 'location' })
   if (ctx.location === 'shop') s.push({ id: 'atShop', label: 'In a shop', source: 'location' })
 

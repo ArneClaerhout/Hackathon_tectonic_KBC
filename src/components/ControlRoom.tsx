@@ -14,9 +14,12 @@ interface Props {
   error: string | null
 }
 
-const LOCATIONS: Location[] = ['home', 'work', 'city', 'shop', 'station', 'abroad']
+const LOCATIONS: { v: Location; label: string }[] = [
+  { v: 'home', label: 'home' }, { v: 'work', label: 'work' }, { v: 'city', label: 'city' }, { v: 'shop', label: 'shop' },
+  { v: 'station', label: 'NMBS station' }, { v: 'busstop', label: 'De Lijn stop' }, { v: 'abroad', label: 'abroad' },
+]
 const TRANSPORTS: { v: Transport; label: string }[] = [
-  { v: null, label: 'stationary' }, { v: 'walk', label: '🚶 walking' }, { v: 'car', label: '🚗 driving' }, { v: 'train', label: '🚆 train' },
+  { v: null, label: 'stationary' }, { v: 'walk', label: '🚶 walking' }, { v: 'car', label: '🚗 driving' }, { v: 'train', label: '🚆 NMBS train' }, { v: 'bus', label: '🚌 De Lijn bus' },
 ]
 const SOURCE_ICON: Record<Signal['source'], string> = {
   transactions: '💶', profile: '👤', location: '📍', behaviour: '⏱️', device: '📱',
@@ -52,7 +55,7 @@ export default function ControlRoom({ personas, persona, onPersona, ctx, onCtx, 
         <label>
           Location
           <select value={ctx.location} onChange={e => onCtx({ ...ctx, location: e.target.value as Location })}>
-            {LOCATIONS.map(l => <option key={l}>{l}</option>)}
+            {LOCATIONS.map(l => <option key={l.v} value={l.v}>{l.label}</option>)}
           </select>
         </label>
         <label>
