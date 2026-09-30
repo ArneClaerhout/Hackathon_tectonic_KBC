@@ -1,5 +1,6 @@
 import type { Stats } from '../api'
 import type { Action, Context, Location, Persona, Signal, Transport } from '../engine/types'
+import ActionIcon from './ActionIcon'
 
 interface Props {
   personas: Persona[]
@@ -80,7 +81,7 @@ export default function ControlRoom({ personas, persona, onPersona, ctx, onCtx, 
             <tbody>
               {actions.map(a => (
                 <tr key={a.id}>
-                  <td>{a.icon} {a.label}</td>
+                  <td><ActionIcon icon={a.icon} /> {a.label}</td>
                   <td className="small muted">{a.surfaces.join(' + ')}</td>
                   <td><div className="bar" style={{ width: `${Math.min(a.score, 120) / 1.2}%` }}>{a.score}</div></td>
                 </tr>

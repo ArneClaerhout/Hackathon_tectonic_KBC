@@ -129,3 +129,6 @@ h3 { margin: 22px 0 8px; font-size: 13px; text-transform: uppercase; letter-spac
 .kpis b { font-size: 22px; color: var(--navy); }
 .stats th { text-align: left; font-size: 11px; color: var(--muted); font-weight: 600; padding: 4px; }
 .stats .ranked td:last-child { width: auto; }
+
+/* Partner logos used as action icons (4411, NMBS) */
+.icon-img { width: 1.2em; height: 1.2em; object-fit: contain; border-radius: 22%; background: #fff; vertical-align: -0.25em; }

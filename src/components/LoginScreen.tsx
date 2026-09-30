@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { InteractionKind } from '../api'
 import type { Action, Persona } from '../engine/types'
 import ActionButton from './ActionButton'
+import ActionIcon from './ActionIcon'
 
 interface Props {
   persona: Persona
@@ -34,7 +35,7 @@ export default function LoginScreen({ persona, actions, onInteract, onLogin }: P
 
       {why && (
         <div className="why-bubble" onClick={() => setWhyId(null)}>
-          <b>{why.icon} Why am I seeing this?</b>
+          <b><ActionIcon icon={why.icon} /> Why am I seeing this?</b>
           <span>{why.reason}</span>
         </div>
       )}

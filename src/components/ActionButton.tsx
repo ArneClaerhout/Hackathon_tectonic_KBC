@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { InteractionKind } from '../api'
 import type { Action } from '../engine/types'
+import ActionIcon from './ActionIcon'
 import StandardIcon, { hasStandardIcon } from './StandardIcon'
 
 interface Props {
@@ -32,7 +33,7 @@ export default function ActionButton({ action, variant, onInteract, whyOpen, onW
   return (
     <div className={`action ${variant} ${contextual ? 'contextual' : 'standard'} ${open ? 'why-open' : ''}`}>
       <button className="action-main" onClick={click}>
-        <span className="action-icon">{done ? '✅' : hasStandardIcon(action.id) ? <StandardIcon id={action.id} /> : action.icon}</span>
+        <span className="action-icon">{done ? '✅' : hasStandardIcon(action.id) ? <StandardIcon id={action.id} /> : <ActionIcon icon={action.icon} />}</span>
         <span className="action-label">{action.label}</span>
       </button>
       {contextual && <button className="why" title="Why am I seeing this?" onClick={toggleWhy}>ⓘ</button>}
